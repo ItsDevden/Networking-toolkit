@@ -8,6 +8,7 @@ I’m studying to become a data technician. This started as an Excel toolkit, th
 - Interactive 16-bit table
 - VLSM planner with automatic calculations and manual prefixes
 - CSV export, copy, reset and dark mode
+- Cisco router/switch setup
 
 Download **NetworkingToolkit.exe** from **Releases** and run it. No separate .NET installation needed.
 
