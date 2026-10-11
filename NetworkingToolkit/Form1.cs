@@ -25,6 +25,8 @@ namespace NetworkingToolkit
         {
             InitializeComponent();
             SetupInterface();
+            SetupFlsm();
+            SetupCliGenerator();
 
             // VLSM table
             gridRequests.ReadOnly = false;
@@ -888,6 +890,7 @@ namespace NetworkingToolkit
         private void tabControl1_SelectedIndexChanged(
             object? sender, EventArgs e)
         {
+            CliTabResizing();
         }
 
         private void tabPage2_Click(object? sender, EventArgs e)
