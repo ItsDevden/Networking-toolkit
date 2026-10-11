@@ -12,6 +12,14 @@ I’m studying to become a data technician. This started as an Excel toolkit, th
 
 Download **NetworkingToolkit.exe** from **Releases** and run it. No separate .NET installation needed.
 
+
+### Download
+
+[![Download Latest Version](https://img.shields.io/badge/Download-Latest_Version-brightgreen?style=for-the-badge&logo=github)](../../releases/latest)
+
+Download the standalone Windows application. No separate .NET installation required.
+
+
 [Original Excel version](https://github.com/ItsDevden/networking-toolkit-excel)
 
 ## License
