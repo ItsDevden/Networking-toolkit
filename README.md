@@ -1,19 +1,8 @@
-# Networking Toolkit
+# Networking Toolkit v2.4
 
-I’m studying to become a data technician. This started as an Excel toolkit, then I decided to try learning C# by turning it into a Windows app.
+Extract to a clean directory. Open `NetworkingToolkit.slnx` with Visual Studio 2022 or later, with .NET 10 and the .NET Desktop Development workload installed. Build and run with F5.
 
-## Features
+If a resource file is blocked by Windows, in PowerShell at the extracted folder run:
+`Get-ChildItem -Recurse -File | Unblock-File`
 
-- Binary, decimal and hex converters
-- Interactive 16-bit table
-- VLSM planner with automatic calculations and manual prefixes
-- CSV export, copy, reset and dark mode
-- Cisco router/switch setup
-
-Download **NetworkingToolkit.exe** from **Releases** and run it. No separate .NET installation needed.
-
-[Original Excel version](https://github.com/ItsDevden/networking-toolkit-excel)
-
-## License
-
-MIT
+See `CHANGELOG-v2.4.md` for the new features and the build-testing caveat.

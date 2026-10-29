@@ -16,10 +16,13 @@ namespace NetworkingToolkit
         private bool prefixEdited;
         private readonly Dictionary<DataGridViewRow, string> manualPrefixes = new();
         private readonly TextBox plannerStatus = new();
-        private readonly Color surface = Color.FromArgb(48, 48, 48);
+        private readonly Color surface = Color.FromArgb(48, 62, 80);
         private readonly Color ink = Color.FromArgb(236, 236, 236);
         private readonly Color danger = Color.FromArgb(85, 39, 39);
         private readonly Color manualColor = Color.FromArgb(76, 65, 36);
+
+        // Avoid WS_EX_COMPOSITED: it can cause whole-window white flashes while
+        // native WinForms controls are being recreated or resized.
 
         public Form1()
         {
@@ -27,6 +30,10 @@ namespace NetworkingToolkit
             SetupInterface();
             SetupFlsm();
             SetupCliGenerator();
+            SetupIpv6Flsm();
+            SetupNavigation();
+            SetupInfoPages();
+            SetupIpList();
 
             // VLSM table
             gridRequests.ReadOnly = false;
@@ -159,6 +166,20 @@ namespace NetworkingToolkit
                     }
                 };
 
+                // Clicking either the weight or the bit toggles the corresponding position.
+                valueLabel.Cursor = Cursors.Hand;
+                valueLabel.Click += (_, _) => bitBox.Text = bitBox.Text == "1" ? "0" : "1";
+                valueLabel.MouseEnter += (_, _) => valueLabel.BackColor = Color.FromArgb(62, 91, 125);
+                valueLabel.MouseLeave += (_, _) => valueLabel.BackColor = bitBox.Text == "1" ? Color.FromArgb(38, 91, 132) : Color.FromArgb(43, 49, 61);
+                bitBox.TextChanged += (_, _) =>
+                {
+                    bool active = bitBox.Text == "1";
+                    bitBox.BackColor = active ? Color.FromArgb(38, 109, 143) : Color.FromArgb(58, 68, 86);
+                    valueLabel.BackColor = active ? Color.FromArgb(38, 91, 132) : Color.FromArgb(43, 49, 61);
+                    valueLabel.ForeColor = active ? Color.White : Color.FromArgb(205, 218, 238);
+                };
+                valueLabel.BackColor = Color.FromArgb(43, 49, 61);
+                bitBox.BackColor = Color.FromArgb(58, 68, 86);
                 tblBits.Controls.Add(valueLabel, i, 0);
                 tblBits.Controls.Add(bitBox, i, 1);
             }
@@ -172,7 +193,10 @@ namespace NetworkingToolkit
             }
 
             BitBox_TextChanged(null, EventArgs.Empty);
-            ApplyTheme(this);
+            ApplyTheme(tabControl1);
+            SetupExportButtons();
+            SetupFinishedDashboards();
+            ApplyCliPalette(cliPage);
             Shown += (s, e) => QueueRequestCleanup();
         }
 
@@ -221,6 +245,14 @@ namespace NetworkingToolkit
         private void SetupInterface()
         {
             Text = "Networking Toolkit";
+            // The .ico is embedded so the form displays our own icon even when
+            // launched from Visual Studio, outside the build output directory.
+            using (var iconStream = typeof(Form1).Assembly.GetManifestResourceStream("NetworkingToolkit.DenDev.ico"))
+            {
+                if (iconStream != null)
+                    Icon = new Icon(iconStream);
+            }
+            ShowIcon = true;
             ClientSize = new Size(1260, 600);
             MinimumSize = new Size(900, 450);
             StartPosition = FormStartPosition.CenterScreen;
@@ -251,33 +283,56 @@ namespace NetworkingToolkit
             convertHexButton.SetBounds(365, 62, 120, 32);
             convertBinaryButton.SetBounds(365, 102, 120, 32);
             resultLabel.SetBounds(515, 25, 300, 110);
-            tblBits.SetBounds(16, 185, 800, 100);
+            // Header and contextual summary give the bit editor a clear hierarchy.
+            var calculatorTitle = new Label
+            {
+                Text = "IPv4 / BINARY WORKSPACE", Location = new Point(16, 157),
+                Size = new Size(580, 25), ForeColor = Color.FromArgb(128, 185, 235),
+                Font = new Font("Segoe UI", 11, FontStyle.Bold)
+            };
+            tabPage1.Controls.Add(calculatorTitle);
+            tblBits.SetBounds(16, 195, 800, 100);
             tblBits.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             tabPage1.Resize += (s, e) =>
                 tblBits.Width = Math.Max(764, tabPage1.ClientSize.Width - 32);
             Shown += (s, e) => tblBits.Width = Math.Max(764, tabPage1.ClientSize.Width - 32);
-            lblBitResult.Location = new Point(16, 300);
+            lblBitResult.Location = new Point(16, 315);
             var resetBits = MakeButton("Reset converters", (s, e) =>
             {
                 decimalInput.Clear(); hexInput.Clear(); binaryInput.Clear();
                 foreach (TextBox box in tblBits.Controls.OfType<TextBox>()) box.Text = "0";
                 resultLabel.Text = "Results will appear here";
             });
-            resetBits.Location = new Point(16, 345);
+            resetBits.Location = new Point(16, 370);
+            var setAllBits = MakeButton("Set all bits", (s, e) =>
+            {
+                foreach (TextBox box in tblBits.Controls.OfType<TextBox>()) box.Text = "1";
+            });
+            setAllBits.Location = new Point(150, 370);
+            tabPage1.Controls.Add(setAllBits);
+            var invertBits = MakeButton("Invert", (s, e) =>
+            {
+                foreach (TextBox box in tblBits.Controls.OfType<TextBox>()) box.Text = box.Text == "1" ? "0" : "1";
+            });
+            invertBits.Location = new Point(275, 370);
+            tabPage1.Controls.Add(invertBits);
             tabPage1.Controls.Add(resetBits);
 
             if (!gridRequests.Columns.Contains("SubnetMask"))
                 gridRequests.Columns.Add(new DataGridViewTextBoxColumn
                 { Name = "SubnetMask", HeaderText = "Subnet mask", ReadOnly = true });
+            gridRequests.RowHeadersVisible = false;
             gridRequests.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            gridRequests.CellBorderStyle = DataGridViewCellBorderStyle.Single;
+            gridRequests.GridColor = Color.FromArgb(85, 96, 113);
             gridRequests.RowHeadersWidth = 34;
             gridRequests.RowTemplate.Height = 32;
             gridRequests.ColumnHeadersHeight = 42;
             gridRequests.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             foreach (DataGridViewColumn column in gridRequests.Columns)
             {
-                column.MinimumWidth = column.Index == 3 ? 60 : 90;
-                column.FillWeight = column.Index == 3 ? 55 : 110;
+                column.MinimumWidth = column.Index == 3 ? 55 : 75;
+                column.FillWeight = column.Index switch { 0 => 105, 1 => 80, 3 => 55, 4 => 110, _ => 120 };
             }
             if (gridRequests.Columns["SubnetMask"] is DataGridViewColumn maskColumn)
             {
@@ -306,6 +361,7 @@ namespace NetworkingToolkit
             toolbar.Controls.Add(MakeButton("Reset table", ResetPlanner));
             toolbar.Controls.Add(MakeButton("Copy table", CopyPlanner));
             toolbar.Controls.Add(MakeButton("Export CSV", ExportPlanner));
+            toolbar.Controls.Add(MakeButton("Export Excel", (s, e) => ExportExcel(gridRequests, "VLSM-plan.xlsx", PrepareExport)));
             plannerStatus.Dock = DockStyle.Bottom;
             plannerStatus.Height = 82;
             plannerStatus.Multiline = true;
@@ -321,7 +377,10 @@ namespace NetworkingToolkit
 
         private void ApplyTheme(Control control)
         {
-            control.BackColor = Color.FromArgb(33, 33, 33);
+            // Info pages own their palette; do not overwrite their custom card colors.
+            // Their controls are created before this legacy theme pass runs.
+            if (control is TabPage page && Equals(page.Tag, "info")) return;
+            control.BackColor = Color.FromArgb(29, 35, 45);
             control.ForeColor = ink;
             if (control is TextBox box)
             {
@@ -333,30 +392,62 @@ namespace NetworkingToolkit
             {
                 button.UseVisualStyleBackColor = false;
                 button.FlatStyle = FlatStyle.Flat;
-                button.BackColor = surface;
-                button.FlatAppearance.BorderColor = Color.FromArgb(74, 74, 74);
-                button.FlatAppearance.MouseOverBackColor = Color.FromArgb(65, 65, 65);
+                button.BackColor = Color.FromArgb(48, 62, 80);
+                button.FlatAppearance.BorderColor = Color.FromArgb(87, 108, 132);
+                button.FlatAppearance.MouseOverBackColor = Color.FromArgb(61, 85, 110);
             }
             if (control is DataGridView grid)
             {
                 grid.EnableHeadersVisualStyles = false;
-                grid.BackgroundColor = Color.FromArgb(33, 33, 33);
-                grid.GridColor = Color.FromArgb(74, 74, 74);
+                grid.BackgroundColor = Color.FromArgb(29, 35, 45);
+                grid.GridColor = Color.FromArgb(85, 96, 113);
+                grid.CellBorderStyle = DataGridViewCellBorderStyle.Single;
                 grid.BorderStyle = BorderStyle.None;
                 grid.DefaultCellStyle.BackColor = surface;
                 grid.DefaultCellStyle.ForeColor = ink;
-                grid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(75, 75, 75);
+                grid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(51, 88, 115);
                 grid.DefaultCellStyle.SelectionForeColor = Color.White;
-                grid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(40, 40, 40);
+                grid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(39, 48, 63);
                 grid.ColumnHeadersDefaultCellStyle.ForeColor = ink;
                 grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = surface;
-                grid.RowHeadersDefaultCellStyle.BackColor = Color.FromArgb(40, 40, 40);
+                grid.RowHeadersDefaultCellStyle.BackColor = Color.FromArgb(39, 48, 63);
                 grid.RowHeadersDefaultCellStyle.ForeColor = ink;
                 grid.RowHeadersDefaultCellStyle.SelectionBackColor = surface;
-                grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(43, 43, 43);
+                grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(35, 44, 57);
                 return;
             }
             foreach (Control child in control.Controls) ApplyTheme(child);
+        }
+
+        // CLI is created before the legacy theme pass. Re-apply the shared palette
+        // to that page after all generators have been initialized.
+        private void ApplyCliPalette(Control root)
+        {
+            root.BackColor = Color.FromArgb(29, 35, 45);
+            root.ForeColor = ink;
+            foreach (Control child in root.Controls)
+            {
+                if (child is RichTextBox || child is TextBox)
+                {
+                    child.BackColor = Color.FromArgb(30, 39, 52);
+                    child.ForeColor = Color.FromArgb(221, 234, 247);
+                }
+                else if (child is ComboBox || child is NumericUpDown)
+                {
+                    child.BackColor = Color.FromArgb(48, 62, 80);
+                    child.ForeColor = ink;
+                }
+                else if (child is Button b)
+                {
+                    b.UseVisualStyleBackColor = false;
+                    b.FlatStyle = FlatStyle.Flat;
+                    b.BackColor = Color.FromArgb(48, 62, 80);
+                    b.ForeColor = ink;
+                    b.FlatAppearance.BorderColor = Color.FromArgb(87, 108, 132);
+                    b.FlatAppearance.MouseOverBackColor = Color.FromArgb(61, 85, 110);
+                }
+                else ApplyCliPalette(child);
+            }
         }
 
         private void ResetPlanner(object? sender, EventArgs e)

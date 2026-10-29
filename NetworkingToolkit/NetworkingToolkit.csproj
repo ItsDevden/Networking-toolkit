@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
@@ -10,7 +10,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Content Include="DenDev.ico" />
+	  <EmbeddedResource Include="DenDev.ico" LogicalName="NetworkingToolkit.DenDev.ico" />
+      <EmbeddedResource Include="DenDev.png" LogicalName="NetworkingToolkit.DenDev.png" />
 	</ItemGroup>
 
 </Project>

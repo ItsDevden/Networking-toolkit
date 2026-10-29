@@ -9,8 +9,8 @@ namespace NetworkingToolkit
 {
     public partial class Form1
     {
-        private readonly TextBox flsmParent = new() { Width = 195, Text = "192.168.1.0/24" };
-        private readonly NumericUpDown flsmCount = new() { Width = 85, Minimum = 1, Maximum = 4096, Value = 4 };
+        private readonly TextBox flsmParent = new() { Width = 195, Text = "10.0.0.0/24" };
+        private readonly NumericUpDown flsmCount = new() { Width = 85, Minimum = 1, Maximum = 4096, Value = 1 };
         private readonly TextBox flsmStatus = new() { ReadOnly = true, Multiline = true, Dock = DockStyle.Bottom, Height = 68 };
         private readonly DataGridView flsmGrid = new()
         {
@@ -20,6 +20,8 @@ namespace NetworkingToolkit
             AllowUserToDeleteRows = false,
             RowHeadersVisible = false,
             AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            CellBorderStyle = DataGridViewCellBorderStyle.Single,
+            GridColor = Color.FromArgb(85, 96, 113),
             SelectionMode = DataGridViewSelectionMode.FullRowSelect,
             MultiSelect = true,
             ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText
@@ -48,15 +50,34 @@ namespace NetworkingToolkit
                 flsmGrid.ClearSelection();
             }));
             toolbar.Controls.Add(MakeButton("Export CSV", (s, e) => ExportFlsm()));
+            toolbar.Controls.Add(MakeButton("Export Excel", (s, e) => ExportExcel(flsmGrid, "FLSM-plan.xlsx")));
             foreach (string name in new[] { "#", "Network ID", "CIDR", "Subnet mask", "First usable", "Last usable", "Broadcast", "Usable hosts" })
                 flsmGrid.Columns.Add(name.Replace(" ", ""), name);
+            flsmGrid.Columns[0].FillWeight = 30;
+            flsmGrid.Columns[0].MinimumWidth = 45;
+            flsmGrid.Columns[2].FillWeight = 55;
+            flsmGrid.Columns[7].FillWeight = 78;
             flsmGrid.RowTemplate.Height = 29;
             flsmGrid.ColumnHeadersHeight = 38;
             page.Controls.Add(flsmGrid);
             page.Controls.Add(flsmStatus);
             page.Controls.Add(toolbar);
             flsmParent.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; CalculateFlsm(); } };
+            flsmGrid.KeyDown += (_, e) =>
+            {
+                if (e.KeyCode == Keys.Enter && flsmCount.Value < flsmCount.Maximum)
+                {
+                    e.SuppressKeyPress = true;
+                    flsmCount.Value++;
+                }
+                else if (e.KeyCode == Keys.Back && flsmCount.Value > flsmCount.Minimum)
+                {
+                    e.SuppressKeyPress = true;
+                    flsmCount.Value--;
+                }
+            };
             flsmCount.ValueChanged += (s, e) => CalculateFlsm();
+            flsmParent.TextChanged += (s, e) => CalculateFlsm();
             CalculateFlsm();
         }
 

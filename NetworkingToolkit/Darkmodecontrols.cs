@@ -18,9 +18,9 @@ namespace NetworkingToolkit
 
             using Graphics g = Graphics.FromHwnd(Handle);
             using var background = new SolidBrush(
-                Color.FromArgb(33, 33, 33));
+                Color.FromArgb(29, 35, 45));
             using var selected = new SolidBrush(
-                Color.FromArgb(48, 48, 48));
+                Color.FromArgb(39, 48, 63));
 
             Rectangle page = DisplayRectangle;
 
@@ -48,7 +48,7 @@ namespace NetworkingToolkit
 
             // Cover the native page border.
             using var border = new Pen(
-                Color.FromArgb(33, 33, 33), 4);
+                Color.FromArgb(29, 35, 45), 4);
 
             Rectangle frame = page;
             frame.Inflate(2, 2);
