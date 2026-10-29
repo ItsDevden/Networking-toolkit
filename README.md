@@ -9,7 +9,7 @@ Built with C# and Windows Forms • Designed for hands-on networking practice an
 Windows · .NET 10 · No internet required for calculations
 </div>
 
-[![Download Latest Release](https://img.shields.io/badge/⬇_DOWNLOAD-LATEST_RELEASE-brightgreen?style=for-the-badge&logo=github)]([https://github.com/YOUR_USERNAME/Networking-toolkit](https://github.com/ItsDevden/Networking-toolkit)/releases/latest)
+[![Download Latest Version](https://img.shields.io/badge/DOWNLOAD-LATEST_VERSION-22c55e?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ItsDevden/Networking-toolkit/releases/latest/download/NetworkingToolkit.zip)
 
 What's inside?
 Tool	What it does
