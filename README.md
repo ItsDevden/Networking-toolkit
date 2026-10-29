@@ -9,7 +9,7 @@ Built with C# and Windows Forms • Designed for hands-on networking practice an
 Windows · .NET 10 · No internet required for calculations
 </div>
 
-Download: Click Download Latest Release above, then download the Windows executable or ZIP from Assets. The link automatically opens the newest GitHub release (as long as it is published as the latest release). This is a release-page link, not a direct EXE download.
+[![Download Latest Release](https://img.shields.io/badge/⬇_DOWNLOAD-LATEST_RELEASE-brightgreen?style=for-the-badge&logo=github)]([https://github.com/YOUR_USERNAME/Networking-toolkit](https://github.com/ItsDevden/Networking-toolkit)/releases/latest)
 
 What's inside?
 Tool	What it does
