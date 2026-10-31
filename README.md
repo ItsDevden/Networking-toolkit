@@ -13,6 +13,7 @@ Access the Networking Toolkit directly from your browser, on desktop or mobile. 
 
 </div>
 If you insist on the exe
+
 [![Download Latest Version](https://img.shields.io/badge/DOWNLOAD-LATEST_VERSION-22c55e?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ItsDevden/Networking-toolkit/releases/latest/download/NetworkingToolkit.zip)
 
 What's inside?
